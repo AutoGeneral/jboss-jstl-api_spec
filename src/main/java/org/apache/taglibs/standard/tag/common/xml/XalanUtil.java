@@ -51,8 +51,7 @@ public class XalanUtil {
     /**
      * Return the XPathContext to be used for evaluating expressions.
      *
-     * If the child is nested withing a forEach tag its iteration context is used.
-     * Otherwise, a new context is created based on an empty Document.
+     * A new context is created based on an empty Document.
      *
      * @param child the tag whose context should be returned
      * @param pageContext the current page context
