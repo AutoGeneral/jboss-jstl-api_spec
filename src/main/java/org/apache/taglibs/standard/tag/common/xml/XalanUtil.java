@@ -59,13 +59,6 @@ public class XalanUtil {
      * @return the XPath evaluation context
      */
     public static XPathContext getContext(Tag child, PageContext pageContext) {
-        // if within a forEach tag, use its context
-        ForEachTag forEachTag = (ForEachTag) TagSupport.findAncestorWithClass(child, ForEachTag.class);
-        if (forEachTag != null) {
-            return forEachTag.getContext();
-        }
-
-        // otherwise, create a new context referring to an empty document
         XPathContext context = new XPathContext(false);
         VariableStack variableStack = new JSTLVariableStack(pageContext);
         context.setVarStack(variableStack);
