@@ -16,6 +16,7 @@
  */
 package org.apache.taglibs.standard.tag.common.xml;
 
+import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.PageContext;
 import javax.servlet.jsp.tagext.Tag;
 import javax.servlet.jsp.tagext.TagSupport;
@@ -33,6 +34,10 @@ import org.apache.xpath.objects.XObject;
 import org.apache.xpath.objects.XString;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
+
+import java.lang.reflect.Field;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  */
@@ -58,7 +63,36 @@ public class XalanUtil {
      * @return the XPath evaluation context
      */
     public static XPathContext getContext(Tag child, PageContext pageContext) {
-        XPathContext context = new XPathContext(false);
+		// if within a forEach tag, use its context
+		ForEachTag forEachTag = (ForEachTag) TagSupport.findAncestorWithClass(child, ForEachTag.class);
+		if (forEachTag != null) {
+			/*
+				Don't jump page contexts. This is a dirty hack, but solves the issue
+				where a x:forEach in a tag would otherwise link up with the page
+				context in the parent page rather than its own.
+			 */
+			final XPathContext context = forEachTag.getContext();
+			final VariableStack variableStack = context.getVarStack();
+
+			try {
+				if (variableStack instanceof JSTLVariableStack) {
+					final Field f = variableStack.getClass().getDeclaredField("pageContext");
+					f.setAccessible(true);
+					final Object pageContexObject = f.get(variableStack);
+					if (pageContexObject instanceof PageContext) {
+						final PageContext parentPageContext = (PageContext)pageContexObject;
+
+						if (parentPageContext == pageContext) {
+							return forEachTag.getContext();
+						}
+					}
+				}
+			} catch (final Exception ex) {
+				throw new RuntimeException("There was an exception thrown inspecting the page context of the parent JSP element", ex)
+			}
+		}
+
+		XPathContext context = new XPathContext(false);
         VariableStack variableStack = new JSTLVariableStack(pageContext);
         context.setVarStack(variableStack);
         int dtm = context.getDTMHandleFromNode(newEmptyDocument());
