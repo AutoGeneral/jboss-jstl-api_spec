@@ -88,7 +88,7 @@ public class XalanUtil {
 					}
 				}
 			} catch (final Exception ex) {
-				throw new RuntimeException("There was an exception thrown inspecting the page context of the parent JSP element", ex)
+				throw new RuntimeException("There was an exception thrown inspecting the page context of the parent JSP element", ex);
 			}
 		}
 
